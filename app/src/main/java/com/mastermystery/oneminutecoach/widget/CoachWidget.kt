@@ -2,6 +2,7 @@ package com.mastermystery.oneminutecoach.widget
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
@@ -19,13 +20,11 @@ import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
-import androidx.glance.appwidget.update
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.defaultWeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -71,11 +70,13 @@ private fun CoachWidgetContent(
     val compact = size.width < 200.dp || size.height < 100.dp
     val expanded = size.height >= 170.dp
     val suggestion = snapshot.suggestion
+    val dark = context.resources.configuration.uiMode and
+        Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(ColorProvider(Color(0xFFF7F2FA), Color(0xFF211F26)))
+            .background(widgetColor(dark, light = 0xFFF7F2FA, dark = 0xFF211F26))
             .padding(if (compact) 10.dp else 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -85,13 +86,13 @@ private fun CoachWidgetContent(
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
-                    color = ColorProvider(Color(0xFF1D1B20), Color.White),
+                    color = widgetColor(dark, light = 0xFF1D1B20, dark = 0xFFFFFFFF),
                 ),
             )
             Spacer(GlanceModifier.height(6.dp))
             Text(
                 text = "Create a goal to get your next action.",
-                style = bodyStyle(),
+                style = bodyStyle(dark),
                 maxLines = 2,
             )
             Spacer(GlanceModifier.height(8.dp))
@@ -108,18 +109,19 @@ private fun CoachWidgetContent(
         ) {
             Text(
                 text = suggestion.goalTitle,
-                modifier = GlanceModifier.defaultWeight(),
+                modifier = GlanceModifier.width(if (compact) 90.dp else 145.dp),
                 style = TextStyle(
                     fontWeight = FontWeight.Medium,
                     fontSize = 12.sp,
-                    color = ColorProvider(Color(0xFF6750A4), Color(0xFFD0BCFF)),
+                    color = widgetColor(dark, light = 0xFF6750A4, dark = 0xFFD0BCFF),
                 ),
                 maxLines = 1,
             )
             if (!compact) {
+                Spacer(GlanceModifier.width(8.dp))
                 Text(
                     text = "${snapshot.currentStreak} day streak",
-                    style = smallStyle(),
+                    style = smallStyle(dark),
                     maxLines = 1,
                 )
             }
@@ -132,7 +134,7 @@ private fun CoachWidgetContent(
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
                 fontSize = if (compact) 14.sp else 17.sp,
-                color = ColorProvider(Color(0xFF1D1B20), Color.White),
+                color = widgetColor(dark, light = 0xFF1D1B20, dark = 0xFFFFFFFF),
             ),
             maxLines = if (expanded) 3 else 2,
         )
@@ -144,7 +146,7 @@ private fun CoachWidgetContent(
                 style = TextStyle(
                     fontStyle = FontStyle.Italic,
                     fontSize = 12.sp,
-                    color = ColorProvider(Color(0xFF625B71), Color(0xFFCAC4D0)),
+                    color = widgetColor(dark, light = 0xFF625B71, dark = 0xFFCAC4D0),
                 ),
                 maxLines = 2,
             )
@@ -158,26 +160,21 @@ private fun CoachWidgetContent(
         ) {
             Button(
                 text = if (compact) "${suggestion.durationMinutes}m" else "Start ${suggestion.durationMinutes}m",
-                onClick = actionStartActivity(
-                    Intent(context, MainActivity::class.java).apply {
-                        putExtra(MainActivity.EXTRA_START_FOCUS, true)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    },
-                ),
-                modifier = GlanceModifier.defaultWeight(),
+                onClick = actionRunCallback<StartCoachAction>(),
+                modifier = GlanceModifier.width(if (compact) 55.dp else 78.dp),
             )
             Spacer(GlanceModifier.width(6.dp))
             Button(
                 text = "Done",
                 onClick = actionRunCallback<CompleteCoachAction>(),
-                modifier = GlanceModifier.defaultWeight(),
+                modifier = GlanceModifier.width(if (compact) 55.dp else 68.dp),
             )
             if (!compact) {
                 Spacer(GlanceModifier.width(6.dp))
                 Button(
                     text = "Swap",
                     onClick = actionRunCallback<SwapCoachAction>(),
-                    modifier = GlanceModifier.defaultWeight(),
+                    modifier = GlanceModifier.width(68.dp),
                 )
             }
         }
@@ -186,22 +183,40 @@ private fun CoachWidgetContent(
             Spacer(GlanceModifier.height(6.dp))
             Text(
                 text = "${snapshot.completedToday} completed today · tap the app to adjust time and energy",
-                style = smallStyle(),
+                style = smallStyle(dark),
                 maxLines = 1,
             )
         }
     }
 }
 
-private fun bodyStyle() = TextStyle(
+private fun widgetColor(darkMode: Boolean, light: Long, dark: Long): ColorProvider =
+    ColorProvider(Color(if (darkMode) dark else light))
+
+private fun bodyStyle(dark: Boolean) = TextStyle(
     fontSize = 13.sp,
-    color = ColorProvider(Color(0xFF49454F), Color(0xFFE6E0E9)),
+    color = widgetColor(dark, light = 0xFF49454F, dark = 0xFFE6E0E9),
 )
 
-private fun smallStyle() = TextStyle(
+private fun smallStyle(dark: Boolean) = TextStyle(
     fontSize = 10.sp,
-    color = ColorProvider(Color(0xFF79747E), Color(0xFFCAC4D0)),
+    color = widgetColor(dark, light = 0xFF79747E, dark = 0xFFCAC4D0),
 )
+
+class StartCoachAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        context.startActivity(
+            Intent(context, MainActivity::class.java).apply {
+                putExtra(MainActivity.EXTRA_START_FOCUS, true)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            },
+        )
+    }
+}
 
 class CompleteCoachAction : ActionCallback {
     override suspend fun onAction(
