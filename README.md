@@ -87,7 +87,7 @@ app/
 
 ### Technology
 
-- Kotlin 2.4
+- Kotlin 2.3
 - Jetpack Compose + Material 3
 - Jetpack Glance
 - Room
@@ -99,7 +99,7 @@ app/
 
 ## Build
 
-Use Android Studio Quail or a compatible recent release with JDK 17.
+Use a recent Android Studio release with JDK 17, or install Gradle 8.13 locally.
 
 ```bash
 gradle :app:assembleDebug
@@ -107,7 +107,7 @@ gradle :app:testDebugUnitTest
 gradle :app:lintDebug
 ```
 
-The CI workflow installs Gradle 8.13 and Android SDK 36 before running tests, lint, and the debug build.
+The CI workflow installs Gradle 8.13 and Android SDK 36 before running unit tests, Android lint, and the debug build. Failed test and lint logs are retained as short-lived workflow artifacts for diagnosis.
 
 ## Widget testing checklist
 
