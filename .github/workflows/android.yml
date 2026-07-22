@@ -39,6 +39,23 @@ jobs:
         with:
           gradle-version: '8.13'
 
+      - name: Generate verified Gradle wrapper
+        run: >-
+          gradle wrapper
+          --gradle-version 8.13
+          --gradle-distribution-sha256-sum 20f1b1176237254a6fc204d8434196fa11a4cfb387567519c61556e8710aed78
+
+      - name: Upload Gradle wrapper files
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-wrapper-files
+          path: |
+            gradlew
+            gradlew.bat
+            gradle/wrapper/gradle-wrapper.jar
+            gradle/wrapper/gradle-wrapper.properties
+          retention-days: 7
+
       - name: Unit tests
         id: unit_tests
         continue-on-error: true
