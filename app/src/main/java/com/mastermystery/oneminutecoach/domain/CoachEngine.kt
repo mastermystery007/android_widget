@@ -41,15 +41,22 @@ object CoachEngine {
         recentActionIds: List<Long>,
         nowEpochMillis: Long = System.currentTimeMillis(),
     ): CoachPick? {
-        if (actions.isEmpty()) return null
+        val enabledActions = actions.filter { it.isEnabled }
+        if (enabledActions.isEmpty()) return null
+
+        val mostRecent = recentActionIds.firstOrNull()
+        val candidates = if (mostRecent != null && enabledActions.size > 1) {
+            enabledActions.filterNot { it.id == mostRecent }.ifEmpty { enabledActions }
+        } else {
+            enabledActions
+        }
 
         val hour = Instant.ofEpochMilli(nowEpochMillis)
             .atZone(ZoneId.systemDefault())
             .hour
 
-        return actions
+        return candidates
             .asSequence()
-            .filter { it.isEnabled }
             .map { action ->
                 var score = 100.0
 
