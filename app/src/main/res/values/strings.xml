@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">One Minute Coach</string>
+    <string name="widget_description">Your single best next action, adapted to your time and energy.</string>
+    <string name="notification_channel_name">Daily coaching</string>
+    <string name="notification_channel_description">A gentle reminder with one useful next action.</string>
+</resources>
