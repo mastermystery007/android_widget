@@ -42,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,7 +54,6 @@ import com.mastermystery.oneminutecoach.data.GoalEntity
 import com.mastermystery.oneminutecoach.domain.CoachStats
 import java.time.LocalDate
 import java.time.format.TextStyle
-import java.util.Locale
 
 @Composable
 fun CoachScreen(
@@ -340,9 +340,10 @@ fun StatTile(value: String, label: String, modifier: Modifier = Modifier) {
 fun WeeklyMomentumCard(stats: CoachStats) {
     val max = stats.lastSevenDays.maxOrNull()?.coerceAtLeast(1) ?: 1
     val today = LocalDate.now()
+    val locale = LocalLocale.current.platformLocale
     val labels = (6 downTo 0).map { days ->
         today.minusDays(days.toLong()).dayOfWeek
-            .getDisplayName(TextStyle.NARROW, Locale.getDefault())
+            .getDisplayName(TextStyle.NARROW, locale)
     }
     OutlinedCard {
         Column(modifier = Modifier.padding(16.dp)) {
